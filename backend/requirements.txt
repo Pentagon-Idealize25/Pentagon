@@ -8,3 +8,5 @@ passlib[bcrypt]
 python-jose[cryptography]
 requests
 pydantic-settings
+pytz
+google-generativeai
