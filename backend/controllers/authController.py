@@ -1,5 +1,6 @@
 # app/services/auth_service.py
 import uuid
+import os
 from db.database import users_collection
 from models.user import UserCreate, Token
 from services.authService import (
@@ -10,6 +11,10 @@ from services.authService import (
 )
 from datetime import timedelta
 from typing import Optional
+
+# Import constants
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 
 
@@ -78,17 +83,16 @@ class AuthService:
 
     @staticmethod
     async def create_tokens(user_id: str) -> Token:
+        secret_key = os.getenv("SECRET_KEY", "your-secret-key")
         access_token = create_access_token(
             {"sub": user_id},
-            timedelta(minutes=30),
-            "your-secret-key",
-            "HS256"
+            timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+            secret_key
         )
         refresh_token = create_refresh_token(
             {"sub": user_id},
-            timedelta(days=7),
-            "your-secret-key",
-            "HS256"
+            timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+            secret_key
         )
         return Token(
             access_token=access_token,
