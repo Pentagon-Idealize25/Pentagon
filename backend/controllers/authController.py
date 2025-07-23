@@ -44,6 +44,7 @@ class AuthService:
         if not result.inserted_id:
             raise ValueError("Failed to create user")
         
+        return user_id
     
 
     @staticmethod

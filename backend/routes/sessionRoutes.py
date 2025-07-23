@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from models.session import SessionCreate, SessionResponse,SessionsList
 from services.sessionServices import create_session, get_session_by_id,get_sessions_by_user
-from .auth import get_current_user_from_token
+from auth_dependencies import get_current_user_from_token
 
 router = APIRouter(tags=["Sessions"], prefix="/sessions")
 

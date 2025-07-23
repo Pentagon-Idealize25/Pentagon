@@ -56,7 +56,13 @@ def create_refresh_token(user_id: str) -> str:
     )
 
 def _create_token(data: dict, expires_delta: timedelta) -> str:
+    import os
+    from dotenv import load_dotenv
+    
+    load_dotenv()
+    SECRET_KEY = os.getenv("SECRET_KEY", "pentagon_secret_key_2025_secure_token_generation")
+    
     to_encode = data.copy()
     expire = datetime.utcnow() + expires_delta
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, "your-secret-key", algorithm="HS256")
+    return jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")

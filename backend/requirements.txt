@@ -20,3 +20,4 @@ PyPDF2
 langchain_ollama.llms 
 langchain_core.prompts 
 vector 
+google-generativeai

@@ -7,6 +7,7 @@ from utils import decode_token
 import os
 from db.database import users_collection
 from dotenv import load_dotenv
+from auth_dependencies import get_current_user_from_token
 
 load_dotenv()  # Load environment variables
 
@@ -16,54 +17,15 @@ DOMAIN = os.getenv("DOMAIN", "localhost")
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
+SECRET_KEY = os.getenv("SECRET_KEY", "pentagon_secret_key_2025_secure_token_generation")
 ALGORITHM = "HS256"
 
 router = APIRouter(tags=["Auth"], prefix="/auth")
 
 @router.get("/me")
-async def get_current_user(request: Request):
-    # Get token directly from Authorization header as fallback
-    
-    auth_header = request.headers.get("Authorization")
-    if auth_header and auth_header.startswith("Bearer "):
-        token = auth_header[7:]
-    else:
-        # Try getting from cookies
-        token = request.cookies.get("access_token")
-       
-
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
-    
-    try:
-        payload = decode_token(token, SECRET_KEY, ALGORITHM)
-        user_id = payload.get("sub")
-        
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token payload"
-            )
-        
-        user = await users_collection.find_one({"id": user_id}, {"_id": 0, "hashed_password": 0})
-        
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
-            )
-            
-        return user
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {str(e)}"
-        )
+async def get_current_user(current_user: dict = Depends(get_current_user_from_token)):
+    """Get current user information"""
+    return current_user
 
 @router.post("/refresh")
 async def refresh_token(request: Request, response: Response):
@@ -224,43 +186,3 @@ async def logout(response: Response):
     )
     
     return {"message": "Successfully logged out"}
-
-
-
-# Add this function to your auth router
-async def get_current_user_from_token(request: Request) -> dict:
-    """Reusable dependency to get current user from token"""
-    auth_header = request.headers.get("Authorization")
-    token = auth_header[7:] if auth_header and auth_header.startswith("Bearer ") else request.cookies.get("access_token")
-    
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
-    
-    try:
-        payload = decode_token(token, SECRET_KEY, ALGORITHM)
-        user_id = payload.get("sub")
-        
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token payload"
-            )
-        
-        user = await users_collection.find_one({"id": user_id}, {"_id": 0, "hashed_password": 0})
-        
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
-            )
-            
-        return user
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {str(e)}"
-        )
