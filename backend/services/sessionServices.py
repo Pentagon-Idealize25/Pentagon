@@ -3,6 +3,13 @@ from db.database import sessions_collection
 from models.session import SessionResponse
 from bson import ObjectId
 from typing import List
+from util.gemini import generate_session_title 
+from fastapi import HTTPException
+from pydantic import BaseModel
+
+class FirstMessage(BaseModel):
+    user_id: str
+    message: str
 
 async def create_session(user_id: str, title: str) -> str:
     session_data = {
@@ -12,6 +19,22 @@ async def create_session(user_id: str, title: str) -> str:
     }
     result = await sessions_collection.insert_one(session_data)
     return str(result.inserted_id)
+
+async def start_new_session(data: FirstMessage):
+    try:
+        # Step 1: Generate a title from the first message
+        title = await generate_session_title(data.message)
+
+        # Step 2: Create session in DB
+        session_id = await create_session(data.user_id, title)
+
+        return {
+            "session_id": session_id,
+            "title": title,
+            "message": "New session created successfully."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 async def get_session_by_id(session_id: str, user_id: str):
     session = await sessions_collection.find_one(

@@ -1,7 +1,5 @@
-
-from fastapi import APIRouter, HTTPException, status, Response
-from fastapi.responses import JSONResponse
-from models.user import UserCreate, UserLogin
+from fastapi import APIRouter, HTTPException, status,Response
+from models.user import UserCreate,UserLogin
 from controllers.authController import AuthService
 from fastapi import Depends, Request,Response
 from utils import decode_token  
@@ -117,43 +115,9 @@ async def refresh_token(request: Request, response: Response):
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def signup(user: UserCreate, response: Response):
     try:
-        # Validate request data
-        if not user.email:
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                content={
-                    "status": "error",
-                    "code": 400,
-                    "message": "Email is required",
-                    "errors": [{"field": "email", "message": "Email is required"}]
-                }
-            )
-            
-        if not user.birthday:
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                content={
-                    "status": "error",
-                    "code": 400,
-                    "message": "Birthday is required and must be in YYYY-MM-DD format",
-                    "errors": [{"field": "birthday", "message": "Birthday is required and must be in YYYY-MM-DD format"}]
-                }
-            )
+        user_id = await AuthService.register(user)  # ✅ get id from return value
 
-        try:
-            user_id = await AuthService.register(user)
-        except ValueError as e:
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                content={
-                    "status": "error",
-                    "code": 400,
-                    "message": str(e),
-                    "errors": [{"field": "general", "message": str(e)}]
-                }
-            )
-
-        tokens = await AuthService.create_tokens(user_id)
+        tokens = await AuthService.create_tokens(user_id)  # ✅ now use this
 
         # Set HTTP-only cookies
         response.set_cookie(
@@ -178,42 +142,17 @@ async def signup(user: UserCreate, response: Response):
             path="/"
         )
 
-        # Get the created user data
-        user = await users_collection.find_one(
-            {"id": user_id}, 
-            {"_id": 0, "hashed_password": 0}
-        )
-        
-        if not user:
-            return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content={
-                    "status": "error",
-                    "code": 500,
-                    "message": "User created but could not retrieve user data",
-                    "errors": [{"field": "general", "message": "Database error"}]
-                }
-            )
-        
-        return JSONResponse(
-            status_code=status.HTTP_201_CREATED,
-            content={
-                "status": "success",
-                "code": 201,
-                "message": "User created successfully",
-                "data": user
-            }
-        )
+        return {"message": "User created successfully"}
 
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     except Exception as e:
-        return JSONResponse(
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={
-                "status": "error",
-                "code": 500,
-                "message": "An unexpected error occurred during signup",
-                "errors": [{"field": "general", "message": str(e)}]
-            }
+            detail=f"Signup failed: {str(e)}"
         )
 
 @router.post("/login", status_code=status.HTTP_200_OK)

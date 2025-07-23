@@ -19,6 +19,7 @@ db = client[DB_NAME]
 users_collection = db["users"]
 sessions_collection = db["sessions"]
 messages_collection = db["messages"]
+lawyers_collection = db["lawyers"]
 
 async def connect_to_mongo():
     print("📦 Connected to MongoDB!")
