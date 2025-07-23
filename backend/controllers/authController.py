@@ -15,14 +15,30 @@ from typing import Optional
 
 class AuthService:
     @staticmethod
-    async def register(user_data: UserCreate) -> Token:
-        # Verify password match
+    async def register(user_data: UserCreate) -> str:
+        """Register a new user and return the user ID"""
+        # Validate password
+        if len(user_data.password) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+            
+        if not any(c.isupper() for c in user_data.password):
+            raise ValueError("Password must contain at least one uppercase letter")
+            
+        if not any(c.islower() for c in user_data.password):
+            raise ValueError("Password must contain at least one lowercase letter")
+            
+        if not any(c.isdigit() for c in user_data.password):
+            raise ValueError("Password must contain at least one number")
+            
         if user_data.password != user_data.confirm_password:
             raise ValueError("Passwords do not match")
-        
+            
+        # Validate name
+        if not user_data.name or len(user_data.name.strip()) == 0:
+            raise ValueError("Name cannot be empty")
+            
         # Check if email exists
         existing_user = await users_collection.find_one({"email": user_data.email})
-        
         if existing_user:
             raise ValueError("Email already registered")
 
@@ -62,8 +78,20 @@ class AuthService:
 
     @staticmethod
     async def create_tokens(user_id: str) -> Token:
+        access_token = create_access_token(
+            {"sub": user_id},
+            timedelta(minutes=30),
+            "your-secret-key",
+            "HS256"
+        )
+        refresh_token = create_refresh_token(
+            {"sub": user_id},
+            timedelta(days=7),
+            "your-secret-key",
+            "HS256"
+        )
         return Token(
-            access_token=create_access_token(user_id),
+            access_token=access_token,
             token_type="bearer",
-            refresh_token=create_refresh_token(user_id)
+            refresh_token=refresh_token
         )
