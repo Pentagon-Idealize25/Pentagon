@@ -18,3 +18,4 @@ def getIndividualLawyer(lawyer) -> dict:
     }
 
 
+
