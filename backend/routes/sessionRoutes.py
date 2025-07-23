@@ -1,6 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from models.session import SessionCreate, SessionResponse,SessionsList
-from services.sessionServices import create_session, get_session_by_id,get_sessions_by_user
+from models.session import SessionCreate, SessionResponse, SessionsList, SessionUpdate
+from services.sessionServices import (
+    create_session, 
+    get_session_by_id, 
+    get_sessions_by_user, 
+    delete_session, 
+    update_session_title
+)
 from .auth import get_current_user_from_token
 
 router = APIRouter(tags=["Sessions"], prefix="/sessions")
@@ -36,6 +42,39 @@ async def create_new_session(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Session creation failed: {str(e)}"
+        )
+
+@router.delete("/{session_id}", status_code=status.HTTP_200_OK)
+async def delete_user_session(
+    session_id: str,
+    current_user: dict = Depends(get_current_user_from_token)
+):
+    """Delete a specific session"""
+    try:
+        user_id = current_user["id"]
+        await delete_session(user_id, session_id)
+        return {"message": "Session deleted successfully"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete session: {str(e)}"
+        )
+
+@router.put("/{session_id}", response_model=SessionResponse)
+async def update_session(
+    session_id: str,
+    session_update: SessionUpdate,
+    current_user: dict = Depends(get_current_user_from_token)
+):
+    """Update a session's title"""
+    try:
+        user_id = current_user["id"]
+        updated_session = await update_session_title(user_id, session_id, session_update.title)
+        return updated_session
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update session: {str(e)}"
         )
 
 

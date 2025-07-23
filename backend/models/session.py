@@ -6,6 +6,9 @@ from bson import ObjectId
 class SessionCreate(BaseModel):
     title: str
 
+class SessionUpdate(BaseModel):
+    title: str
+
 class SessionResponse(BaseModel):
     id: str  # Remove alias
     title: str
