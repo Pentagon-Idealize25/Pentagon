@@ -16,6 +16,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
+  signup: (formData: SignupFormData) => Promise<void>;
 }
  type SignupFormData = {
   name: string;
@@ -29,7 +30,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
 // In AuthContext.tsx
