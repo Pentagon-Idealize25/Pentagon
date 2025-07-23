@@ -1,6 +1,4 @@
 backend/__pycache__/server.cpython-313.pyc
-*.pyc
-/backend/__pycache__
 /chroma_langchain_db
 /backend/__pycache__
-/backend/__pycache__
+/backend/*.pyc
