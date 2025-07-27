@@ -9,6 +9,7 @@ python-jose[cryptography]
 requests
 pydantic-settings
 google.generativeai
+google-generativeai
 
 
 langchain_ollama
