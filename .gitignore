@@ -1,0 +1,64 @@
+# === Global ===
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+*.pyo
+.Python
+*.log
+.env
+.env.*
+
+# === FastAPI Backend ===
+# Assuming backend is in /backend or similar
+/backend/venv/
+backend/.mypy_cache/
+backend/.pytest_cache/
+backend/.coverage
+backend/instance/
+backend/.DS_Store
+backend/.idea/
+backend/*.sqlite3
+backend/coverage.xml
+backend/htmlcov/
+backend/db.sqlite3
+backend/test.db
+
+# FastAPI + Uvicorn logs
+*.log
+
+# Pydantic compiled files
+*.pyd
+
+# === Next.js Frontend ===
+# Assuming frontend is in /frontend or similar
+/frontend/.next/
+frontend/node_modules/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/.DS_Store
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Build output
+/frontend/out/
+frontend/dist/
+frontend/.turbo/
+
+# Vercel
+/frontend/.vercel/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
