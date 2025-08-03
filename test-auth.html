@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Authentication</title>
+</head>
+<body>
+    <h1>Test Authentication</h1>
+    
+    <div>
+        <h2>Login Test</h2>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+    
+    <div>
+        <h2>Auth Status</h2>
+        <button id="checkAuth">Check Auth Status</button>
+        <div id="authResult"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:8000';
+        
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                console.log('Attempting login...');
+                const response = await fetch(`${BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const result = await response.json();
+                console.log('Login response:', result);
+                
+                if (response.ok) {
+                    alert('Login successful!');
+                    checkAuthStatus();
+                } else {
+                    alert('Login failed: ' + result.detail);
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Login error: ' + error.message);
+            }
+        });
+        
+        async function checkAuthStatus() {
+            try {
+                console.log('Checking auth status...');
+                const response = await fetch(`${BASE_URL}/auth/me`, {
+                    credentials: 'include'
+                });
+                
+                const result = await response.json();
+                console.log('Auth check response:', result);
+                
+                if (response.ok) {
+                    document.getElementById('authResult').innerHTML = 
+                        `<p style="color: green;">Authenticated: ${result.name} (${result.email})</p>`;
+                } else {
+                    document.getElementById('authResult').innerHTML = 
+                        `<p style="color: red;">Not authenticated: ${result.detail}</p>`;
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                document.getElementById('authResult').innerHTML = 
+                    `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+        
+        document.getElementById('checkAuth').addEventListener('click', checkAuthStatus);
+        
+        // Check auth status on page load
+        checkAuthStatus();
+    </script>
+</body>
+</html>

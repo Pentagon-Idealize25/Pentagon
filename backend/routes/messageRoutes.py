@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from bson import ObjectId
+from beanie import PydanticObjectId
 from schemas.messageSchema import MessageCreate, MessageResponse
 from services import messageService
 from fastapi.security import OAuth2PasswordBearer
@@ -44,10 +44,11 @@ def create_access_token(data: dict):
 
 router = APIRouter(tags=["Messages"], prefix="/messages")
 
-def validate_object_id(id: str) -> ObjectId:
-    if not ObjectId.is_valid(id):
+def validate_object_id(id: str) -> PydanticObjectId:
+    try:
+        return PydanticObjectId(id)
+    except Exception:
         raise HTTPException(status_code=400, detail="Invalid ObjectId format")
-    return ObjectId(id)
 
 @router.get("/{session_id}", response_model=list[MessageResponse])
 async def get_messages(
@@ -58,7 +59,7 @@ async def get_messages(
 ):
     try:
         session_oid = validate_object_id(session_id)
-        messages = await messageService.get_messages_by_session(session_oid, skip, limit)
+        messages = await messageService.get_messages_by_session(str(session_oid), skip, limit)
         return messages
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load messages: {str(e)}")

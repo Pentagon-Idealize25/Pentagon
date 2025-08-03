@@ -1,35 +1,13 @@
-from datetime import date
-from pydantic import BaseModel, EmailStr, validator
-from typing import Optional
+from beanie import Document
+from datetime import date, datetime, timezone
+from pydantic import EmailStr, Field
 
-class UserBase(BaseModel):
+class User(Document):
     email: EmailStr
     name: str
     birthday: date
-
-    @validator('birthday', pre=True)
-    def parse_birthday(cls, value):
-        if isinstance(value, str):
-            # Convert ISO string to date object
-            return date.fromisoformat(value)
-        return value
-
-class UserCreate(UserBase):
-    password: str
-    confirm_password: str
-
-class UserInDB(UserBase):
     hashed_password: str
-
-class UserOut(UserBase):
-    id: str
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-    refresh_token: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
+    class Settings:
+        name = "users"  # Collection name in MongoDB

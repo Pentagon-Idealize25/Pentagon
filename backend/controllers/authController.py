@@ -1,7 +1,7 @@
 # app/services/auth_service.py
 import uuid
-from db.database import users_collection
-from models.user import UserCreate, Token
+from models.user import User
+from schemas.userSchema import UserCreate, Token
 from services.authService import (
     get_password_hash,
     create_access_token,
@@ -15,51 +15,60 @@ from typing import Optional
 
 class AuthService:
     @staticmethod
-    async def register(user_data: UserCreate) -> Token:
+    async def register(user_data: UserCreate) -> str:
         # Verify password match
         if user_data.password != user_data.confirm_password:
             raise ValueError("Passwords do not match")
         
         # Check if email exists
-        existing_user = await users_collection.find_one({"email": user_data.email})
+        existing_user = await User.find_one(User.email == user_data.email)
         
         if existing_user:
             raise ValueError("Email already registered")
 
-        # Create user ID and hash password
-        user_id = str(uuid.uuid4())
         hashed_password = get_password_hash(user_data.password)
         
-        # Prepare user document
-        user_doc = {
-            "id": user_id,
-            "email": user_data.email,
-            "name": user_data.name,
-            "birthday": user_data.birthday.isoformat(),
-            "hashed_password": hashed_password
-        }
+        # Create user with Beanie model
+        user = User(
+            email=user_data.email,
+            name=user_data.name,
+            birthday=user_data.birthday,
+            hashed_password=hashed_password
+        )
         
-        # Create user in DB
-        result = await users_collection.insert_one(user_doc)
-        if not result.inserted_id:
-            raise ValueError("Failed to create user")
-        
-        return user_id
+        await user.insert()
+        return str(user.id)
     
 
     @staticmethod
     async def get_user_by_email(email: str):
-        data=await users_collection.find_one({"email": email})
-        return data
+        user = await User.find_one(User.email == email)
+        if user:
+            return {
+                "_id": str(user.id),
+                "email": user.email,
+                "name": user.name,
+                "birthday": user.birthday.isoformat() if user.birthday else None,
+                "hashed_password": user.hashed_password,
+                "created_at": user.created_at
+            }
+        return None
     
     @staticmethod
     async def authenticate_user(email: str, password: str) -> Optional[dict]:
-        user = await users_collection.find_one({"email": email})
+        user = await User.find_one(User.email == email)
         if not user:
             return None
-        if not verify_password(password, user["hashed_password"]):
+        if not verify_password(password, user.hashed_password):
             return None
-        return user
+        return {
+            "_id": str(user.id),
+            "email": user.email,
+            "name": user.name,
+            "birthday": user.birthday.isoformat() if user.birthday else None,
+            "hashed_password": user.hashed_password,
+            "created_at": user.created_at
+        }
 
     @staticmethod
     async def create_tokens(user_id: str) -> Token:

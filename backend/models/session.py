@@ -1,20 +1,12 @@
-from pydantic import BaseModel, Field
-from datetime import datetime
-from typing import List
-from bson import ObjectId
+# models.py
+from beanie import Document
+from datetime import datetime, timezone
+from pydantic import Field
 
-class SessionCreate(BaseModel):
+class Session(Document):
+    user_id: str
     title: str
-
-class SessionResponse(BaseModel):
-    id: str  # Remove alias
-    title: str
-    created_at: datetime
-
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
-
-class SessionsList(BaseModel):
-    sessions: List[SessionResponse]
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    class Settings:
+        name = "sessions"  # Collection name in MongoDB

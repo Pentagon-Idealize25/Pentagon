@@ -1,11 +1,10 @@
 
 from fastapi import APIRouter, HTTPException, status,Response
-from models.user import UserCreate,UserLogin
+from schemas.userSchema import UserCreate, UserLogin
 from controllers.authController import AuthService
 from fastapi import Depends, Request,Response
 from utils import decode_token  
 import os
-from db.database import users_collection
 from dotenv import load_dotenv
 from auth_dependencies import get_current_user_from_token
 
@@ -90,7 +89,6 @@ async def signup(user: UserCreate, response: Response):
             max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
             secure=False,
             samesite="lax",
-            domain=DOMAIN,
             path="/"
         )
 
@@ -101,7 +99,6 @@ async def signup(user: UserCreate, response: Response):
             max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
             secure=False,
             samesite="lax",
-            domain=DOMAIN,
             path="/"
         )
 
@@ -129,7 +126,8 @@ async def login(user_data: UserLogin,response: Response):
         
         print(user)
         # Generate tokens
-        tokens = await AuthService.create_tokens(user["id"])
+        tokens = await AuthService.create_tokens(user["_id"])
+        
         
         
         # Set HTTP-only cookies
@@ -140,7 +138,6 @@ async def login(user_data: UserLogin,response: Response):
             max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
             secure=False, 
             samesite="lax",
-            domain=DOMAIN,
             path="/"
         )
         
@@ -151,11 +148,10 @@ async def login(user_data: UserLogin,response: Response):
             max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
             secure=False,
             samesite="lax",
-            domain=DOMAIN,
             path="/"
         )
         
-        return {"message": "Login successful", "user_id": user["id"]}
+        return {"message": "Login successful", "user_id": user["_id"]}
         
     except ValueError as e:
         raise HTTPException(
@@ -174,14 +170,12 @@ async def logout(response: Response):
     # Clear access token cookie
     response.delete_cookie(
         key="access_token",
-        domain=DOMAIN,
         path="/"
     )
     
     # Clear refresh token cookie
     response.delete_cookie(
         key="refresh_token",
-        domain=DOMAIN,
         path="/"
     )
     

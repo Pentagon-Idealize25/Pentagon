@@ -4,6 +4,7 @@ from routes import  sessionRoutes, messageRoutes,auth
 from db.database import connect_to_mongo, close_mongo_connection
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 
 
@@ -23,7 +24,7 @@ app.add_exception_handler(RequestValidationError, error_handlers.validation_exce
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"], 
+    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")],  # Use environment variable or default to localhost
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

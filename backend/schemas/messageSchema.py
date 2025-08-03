@@ -16,3 +16,6 @@ class MessageResponse(BaseModel):
     content: str
     timestamp: datetime
     reply_to_id: Optional[str] = None
+    class Config:
+        orm_mode = True
+        json_encoders = { datetime: lambda v: v.isoformat() }

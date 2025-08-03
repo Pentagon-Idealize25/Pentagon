@@ -1,8 +1,9 @@
 from fastapi import Depends, HTTPException, status, Request
-from db.database import users_collection
+from models.user import User
 from utils import decode_token
 import os
 from dotenv import load_dotenv
+from beanie import PydanticObjectId
 
 load_dotenv()
 
@@ -36,7 +37,7 @@ async def get_current_user_from_token(request: Request) -> dict:
                 detail="Invalid token payload"
             )
         
-        user = await users_collection.find_one({"id": user_id}, {"_id": 0, "hashed_password": 0})
+        user = await User.get(PydanticObjectId(user_id))
         
         if not user:
             raise HTTPException(
@@ -44,7 +45,13 @@ async def get_current_user_from_token(request: Request) -> dict:
                 detail="User not found"
             )
             
-        return user
+        return {
+            "id": str(user.id),
+            "email": user.email,
+            "name": user.name,
+            "birthday": user.birthday.isoformat() if user.birthday else None,
+            "created_at": user.created_at
+        }
         
     except ValueError as e:
         raise HTTPException(

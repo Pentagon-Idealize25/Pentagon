@@ -24,6 +24,10 @@ backend/coverage.xml
 backend/htmlcov/
 backend/db.sqlite3
 backend/test.db
+# Node-related
+backend/node_modules/
+backend/package-lock.json
+
 
 # FastAPI + Uvicorn logs
 *.log

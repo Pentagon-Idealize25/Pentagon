@@ -1,20 +1,18 @@
-from pydantic import BaseModel, Field
+from beanie import Document
 from typing import Optional
-from datetime import datetime
+from datetime import datetime , timezone
+from pydantic import Field
 
-class MessageCreate(BaseModel):
+class Message(Document):
     session_id: str
     sender: str  # Should be 'user' or 'bot'
     content: str
     reply_to_id: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Store timestamp in UTC
+    
+    class Settings:
+        name = "messages"  # Collection name in MongoDB
 
-class MessageResponse(BaseModel):
-    id: Optional[str] = Field(alias="_id")
-    session_id: str
-    sender: str
-    content: str
-    timestamp: datetime
-    reply_to_id: Optional[str] = None
 
 
 
@@ -25,10 +23,22 @@ class MessageResponse(BaseModel):
 # from typing import Optional
 # from datetime import datetime
 
-# class Message(BaseModel):
+# class MessageCreate(BaseModel):
+#     session_id: str
+#     sender: str  # Should be 'user' or 'bot'
+#     content: str
+#     reply_to_id: Optional[str] = None
+
+# class MessageResponse(BaseModel):
 #     id: Optional[str] = Field(alias="_id")
 #     session_id: str
-#     sender: str  
+#     sender: str
 #     content: str
 #     timestamp: datetime
 #     reply_to_id: Optional[str] = None
+
+
+
+
+
+
