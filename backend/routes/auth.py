@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, HTTPException, status,Response
 from schemas.userSchema import UserCreate, UserLogin
 from controllers.authController import AuthService

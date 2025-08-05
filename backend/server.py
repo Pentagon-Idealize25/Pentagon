@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from core import error_handlers
-from routes import  sessionRoutes, messageRoutes,auth
+from routes import  sessionRoutes, messageRoutes,auth,lawyerRoutes
 from db.database import connect_to_mongo, close_mongo_connection
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,10 +14,12 @@ app = FastAPI()
 app.include_router(sessionRoutes.router)
 app.include_router(messageRoutes.router)
 app.include_router(auth.router)
+app.include_router(lawyerRoutes.router)
 
 
 
 # Add exception handlers
+app.add_exception_handler(RequestValidationError, error_handlers.validation_exception_handler)
 app.add_exception_handler(Exception, error_handlers.global_exception_handler)
 app.add_exception_handler(RequestValidationError, error_handlers.validation_exception_handler)
 
